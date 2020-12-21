@@ -18,26 +18,24 @@ class SimData:
 
     """
     
-    def __init__(self,N,model, shocks, wage):
+    def __init__(self, N, model):
         """
         model: a utility instance (with arbitrary parameters)
         """
         self.N      = N
         self.model  = model
-        self.shocks = shocks
-        self.wage   = wage
+
         
-        #self.H, self.D = H, D
-        
-    def util(self, choice):
+    def util(self, choice, wage, shocks):
+        #input: salario y shocks
         """
         This function takes labor and cc choices and computes utils
         """
 
         H = choice[0]
         D = choice[1]
-
-        return self.model.utility(self.shocks, self.wage, H, D)
+        
+        return self.model.utility(wage, shocks, H, D)
 
     
     def choice(self):
@@ -53,25 +51,28 @@ class SimData:
         choice_2 = [ones*160 , zeros]
         choice_3 = [ones*160 , ones]
         
+        #acá tiene que entrar el salario simulado
+        wage   = self.model.waget()
+        shocks = self.model.res_causal()
         
-        u_0 = self.util(choice_0)
-        u_1 = self.util(choice_1)
-        u_2 = self.util(choice_2)
-        u_3 = self.util(choice_3)
+        u_0 = self.util(choice_0, wage, shocks)
+        u_1 = self.util(choice_1, wage, shocks)
+        u_2 = self.util(choice_2, wage, shocks)
+        u_3 = self.util(choice_3, wage, shocks)
         
         
-        u_v2 = np.array([u_0, u_1, u_2, u_3]).T
+        u   = np.array([u_0, u_1, u_2, u_3]).T
         
-        choice_v1 = np.argmax(u_v2, axis=2)
-        choice_v1 = np.reshape(choice_v1[0], (self.N,1))
+        choice = np.argmax(u, axis=2)
+        choice = np.reshape(choice[0], (self.N,1))
         #returns a (1,N) array
         
         dict= { 0: [0,0], 1: [0,1], 2: [160,0], 3: [160,1]}
-        #según lo que entendí, se debe devolver el óptimo para cada individuo
+        
         labor_opt = np.array(0)
         cc_opt    = np.array(0)
         
-        for x in choice_v1:
+        for x in choice:
             x         = float(x)
             labor_opt = np.append(labor_opt , dict[x][0])
             cc_opt    = np.append(cc_opt    , dict[x][1])
@@ -80,9 +81,14 @@ class SimData:
         cc_opt    = np.reshape(cc_opt[1:self.N+1], (self.N,1))
         
     
-        max_u = self.model.utility(self.shocks, self.wage, labor_opt, cc_opt)
+        max_u = self.model.utility(shocks, wage, labor_opt, cc_opt)
         
-        opt_set = np.hstack((choice_v1, labor_opt, cc_opt, max_u))                
-      
-        return opt_set
-        #return {'Opt Labor': l_opt, 'Opt CC': d_opt, 'Max Utility': max_u}
+        return {'Choice nº': choice,
+                'Wage': wage,
+                'Hours': labor_opt,
+                'CC': cc_opt,
+                'Max Utility': max_u}
+    
+    
+    
+    

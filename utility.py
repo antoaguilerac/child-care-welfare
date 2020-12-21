@@ -9,7 +9,7 @@ computes utility
 # from __future__ import division #omit for python 3.x
 import numpy as np
 import pandas as pd
-import sys
+import sys 
 import os
 from scipy import stats
 import math
@@ -23,7 +23,7 @@ class Utility(object):
 
     """
 
-    def __init__(self, param, N, data):
+    def __init__(self, N, data, param):
         """
         Set up model's data and parameters
 
@@ -43,22 +43,18 @@ class Utility(object):
         """
 
         epsilon = np.sqrt(self.param.sigmaw)*np.random.randn(self.N)
+                
+        xw = np.concatenate((np.reshape(np.array(self.data['constant'], dtype=np.float64),(self.N,1)),
+                             np.reshape(np.array(self.data['m_sch'], dtype=np.float64), (self.N,1)),), axis=1)
         
-        #constant is always the last column:
-        colbeta0 = len(self.data[0])-1
-
-        xw = np.concatenate((np.reshape(self.data[:,0], (self.N,1)), #escolaridad
-                            np.reshape(self.data[:,colbeta0], (self.N,1)),),axis=1) #constante
         
         betas = self.param.betas
         
-
         return np.reshape(np.exp(np.dot(xw,betas)+ epsilon),(self.N,1))
 
 
     def res_causal(self):
         """
-     
         Computes \theta y \omega from a bivariate normal distribution using a given mean and covariance matrix
         
         Returns array with objects omega (0) and theta (1)
@@ -71,7 +67,7 @@ class Utility(object):
         return omega, theta
 
 
-    def utility(self, shocks, wage, H, D):
+    def utility(self, wage, shocks, H, D):
         """
         
         L_i     : "leisure" understood as time not working, sleeping, commuting or spent in cc
@@ -93,7 +89,7 @@ class Utility(object):
 
         """
         
-        C = D*np.reshape(self.data[:,1], (self.N, 1)) #commute*dummy cc
+        C = D*np.reshape(np.array(self.data[['commute2cc']], dtype=np.float64), (self.N,1))#commute*dummy cc
         
         alpha  = self.param.alpha
         gamma  = self.param.gamma
@@ -102,7 +98,7 @@ class Utility(object):
         
         L = self.param.T - (1-D)*self.param.Lc - H - 2*C
         
-        return np.log(wage*H + sys.float_info.epsilon) + L*alpha + D*nu
+        return np.log(abs(wage*H + sys.float_info.epsilon)) + L*alpha + D*nu
 
 
 
