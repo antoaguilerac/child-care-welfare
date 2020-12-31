@@ -71,6 +71,7 @@ class SimData:
         
         labor_opt = np.array(0)
         cc_opt    = np.array(0)
+
         
         for x in choice:
             x         = float(x)
@@ -79,14 +80,16 @@ class SimData:
         
         labor_opt = np.reshape(labor_opt[1:self.N+1], (self.N,1))
         cc_opt    = np.reshape(cc_opt[1:self.N+1], (self.N,1))
+        score     = self.model.score(cc_opt, shocks)
         
     
         max_u = self.model.utility(shocks, wage, labor_opt, cc_opt)
         
-        return {'Choice nº': choice,
+        return {'Choice': choice,
                 'Wage': wage,
-                'Hours': labor_opt,
-                'CC': cc_opt,
+                'Test Score': score,
+                'Hours Choice': labor_opt,
+                'CC Choice': cc_opt,
                 'Max Utility': max_u}
     
     
